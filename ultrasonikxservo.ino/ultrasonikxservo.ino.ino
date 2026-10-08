@@ -1,0 +1,98 @@
+#include <Servo.h>
+Servo servo;
+
+const int trigPin = 9;
+const int echoPin = 8;
+const int led = 2;
+const int led2 = 3;
+const int led3 = 4;
+const int buzzer = 11;
+
+long duration;    // <-- Variabel duration
+float distance;   // <-- Variabel distance
+bool geser = true; 
+
+void setup() {
+  servo.attach(5);
+  pinMode(buzzer, OUTPUT);
+  pinMode(led, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+ measureAndControl();
+  delay(100); // Delay singkat untuk stabilitas
+}
+
+void measureAndControl() 
+{
+  // Kirim pulsa trigger
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Baca waktu pantulan echo
+  duration = pulseIn(echoPin, HIGH);
+
+  // Konversi waktu ke centimeter
+  distance = duration * 0.0343 / 2;
+
+  // Logika kontrol berdasarkan jarak
+  if (distance <= 10) 
+  { if (geser) {
+    digitalWrite(buzzer, HIGH);
+    tone(buzzer, 999);
+    digitalWrite(led, HIGH);
+    servo.write(180);
+    delay(500); 
+    servo.write(0);
+    delay(500);  
+
+    geser = false;  
+    }
+    else {
+    digitalWrite(buzzer, HIGH);
+    tone(buzzer, 999);
+    digitalWrite(led, HIGH);
+    }
+  }
+  else if (distance > 10 && distance <= 25) 
+  {
+    digitalWrite(led, LOW);
+    tone(buzzer, 999);
+    digitalWrite(led2, HIGH);
+    delay(1000);
+    noTone(buzzer);
+    digitalWrite(led2, LOW);
+    geser = true; 
+  }
+  else 
+  {
+    noTone(buzzer);
+    
+    digitalWrite(led, HIGH);
+    delay(1000);
+    digitalWrite(led, LOW);
+    
+    digitalWrite(led2, HIGH);
+    delay(1000);
+    digitalWrite(led2, LOW);
+    
+    digitalWrite(led3, HIGH);
+    delay(1000);
+    digitalWrite(led3, LOW);
+    geser = true; 
+  }
+
+  // Tampilkan hasil pada Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance, 1);
+  Serial.println(" cm");
+}
